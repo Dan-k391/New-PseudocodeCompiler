@@ -1,0 +1,58 @@
+CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Decl);
+
+(* FuncDef *)
+FuncDef     ::= "FUNCTION" Ident "(" [Params] ")" "RETURNS" VarType Block "ENDFUNCTION";
+(* FuncDef *)
+
+(* ProcDef *)
+ProcDef     ::= "PROCEDURE" Ident "(" [Params] ")" Block "ENDPROCEDURE";
+(* ProcDef *)
+
+Params      ::= Param {"," Param};
+Param       ::= Ident ":" VarType;
+
+(* Block *)
+Block       ::= {Stmt};
+Stmt        ::= Decl | Assign | If | While | For | Return | Call;
+(* Block *)
+
+(* Expr *)
+Expr        ::= PrimaryExpr | UnaryExpr | BinaryExpr;
+PrimaryExpr ::= Ident | IntConst | RealConst | CharConst | StringConst | BoolConst | "(" Expr ")" | LVal;
+UnaryExpr   ::= UnaryOp Expr;
+UnaryOp     ::= "+" | "-" | "NOT";
+BinaryExpr  ::= Expr BinaryOp Expr;
+BinaryOp    ::= ArithOp | RelOp;
+ArithOp     ::= "+" | "-" | "*" | "/" | "MOD";
+RelOp       ::= "=" | "<" | ">" | "<=" | ">=" | "<>" | "AND" | "OR";
+(* Expr *)
+
+Decl        ::= (VarDecl | ArrDecl) Newline;
+VarDecl     ::= "DECLARE" Ident ":" VarType;
+VarType     ::= "INTEGER" | "REAL" | "CHAR" | "STRING" | "BOOLEAN";
+ArrDecl     ::= "DECLARE" Ident ":" "ARRAY" "[" Bounds "]" "OF" VarType;
+Bounds      ::= Bound {"," Bound};
+Bound       ::= Lower ":" Upper;
+Lower       ::= Expr;
+Upper       ::= Expr;
+
+Assign      ::= VarAssign | ArrAssign;
+VarAssign   ::= Ident "<-" Expr Newline;
+ArrAssign   ::= LVal "<-" Expr Newline;
+LVal        ::= Ident ["[" Indexes "]"];
+Indexes     ::= Index {"," Index};
+Index       ::= Expr;
+
+If          ::= "IF" Expr "THEN" Block ["ELSE" Block] "ENDIF" Newline;
+
+While       ::= "WHILE" Expr Block "ENDWHILE" Newline;
+
+For         ::= "FOR" Ident "<-" Expr "TO" Expr Block "NEXT" Newline;
+
+Return      ::= "RETURN" Expr Newline;
+
+Call        ::= "CALL" Ident "(" [ParamVals] ")" Newline;
+ParamVals   ::= ParamVals {"," ParamVal};
+ParamVal    ::= Expr;
+
+Newline     ::= "\n";
