@@ -7,10 +7,8 @@
 #include <memory>
 #include <string>
 
-using std::endl;
-using std::string;
-using std::unique_ptr;
-using std::cout;
+using namespace std;
+
 
 /*
 CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Decl);
@@ -73,12 +71,49 @@ ParamVal    ::= Expr;
 Newline     ::= "\n";
 */
 
+class BaseAST;
+
+typedef vector<unique_ptr<BaseAST>> StmtList;
+
 class BaseAST {
 public:
     virtual ~BaseAST() = default;
     virtual string getTypeName() const = 0;
     virtual void dump(string prefix) const = 0;
 };
+
+class StmtAST : public BaseAST {
+public:
+    unique_ptr<BaseAST> stmt;
+
+    string getTypeName() const override {
+        return "Stmt";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        stmt->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class BlockAST : public BaseAST {
+public:
+    unique_ptr<StmtList> stmts = make_unique<StmtList>();
+
+    string getTypeName() const override {
+        return "Block";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "[" << endl;
+        for (auto& stmt : *stmts) {
+            stmt->dump(prefix + "  ");
+        }
+        cout << prefix << "]" << endl;
+    }
+};
+
 
 class CompUnitAST : public BaseAST {
 public:
@@ -132,38 +167,6 @@ public:
         cout << prefix << "  " << "Ident: " << ident << endl;
         block->dump(prefix + "  ");
         cout << prefix << "}" << endl;
-    }
-};
-
-class BlockAST : public BaseAST {
-public:
-    unique_ptr<BaseAST> stmt;
-    unique_ptr<BaseAST> block;
-
-    string getTypeName() const override {
-        return "Block";
-    }
-
-    void dump(string prefix) const override {
-        cout << prefix << getTypeName() << "{" << endl;
-        stmt->dump(prefix + "  ");
-        cout << prefix << "}" << endl;
-        block->dump(prefix);
-    }
-};
-
-class StmtAST : public BaseAST {
-public:
-    unique_ptr<BaseAST> stmt;
-
-    string getTypeName() const override {
-        return "Stmt";
-    }
-
-    void dump(string prefix) const override {
-        cout << prefix << getTypeName() << ": [" << endl;
-        stmt->dump(prefix + "  ");
-        cout << prefix << "]" << endl;
     }
 };
 
@@ -222,6 +225,7 @@ public:
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
+        // 多两个空格让ident的输出更美观
         cout << prefix << "  " << "Number: " << number << "," << endl;
         cout << prefix << "}" << endl;
     }

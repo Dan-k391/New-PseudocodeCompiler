@@ -1,6 +1,8 @@
 %code requires {
+    #include <iostream>
     #include <memory>
     #include <string>
+    #include <vector>
     #include "AST.h"
 }
 
@@ -9,6 +11,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 #include "AST.h"
 
 int yylex();
@@ -24,13 +27,15 @@ using namespace std;
     std::string *str_val;
     int int_val;
     BaseAST *ast_val;
+    BlockAST *block_val;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
 %token <str_val> DECLARE INTEGER
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef ProcDef Block Stmt Decl VarDecl VarType Assign Return
+%type <ast_val> FuncDef ProcDef Stmt Decl VarDecl VarType Assign Return
+%type <block_val> Block
 %type <int_val> Number
 
 %%
@@ -123,7 +128,7 @@ ProcDef
     : PROCEDURE IDENT '(' ')' Block ENDPROCEDURE {
         auto ast = new ProcDefAST();
         ast->ident = *unique_ptr<string>($2);
-        ast->block = unique_ptr<BaseAST>($5);
+        ast->block = unique_ptr<BlockAST>($5);
         $$ = ast;
     }
     ;
@@ -131,14 +136,11 @@ ProcDef
 Block
     : Stmt {
         auto ast = new BlockAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
+        ast->stmts->push_back(unique_ptr<BaseAST>($1));
         $$ = ast;
     }
-    | Stmt Block {
-        auto ast = new BlockAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        ast->block = unique_ptr<BaseAST>($2);
-        $$ = ast;
+    | Block Stmt {
+        $1->stmts->push_back(unique_ptr<BaseAST>($2));
     }
     ;
 
