@@ -31,10 +31,10 @@ using namespace std;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
-%token <str_val> DECLARE INTEGER
+%token <str_val> DECLARE ASSIGN INTEGER
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef ProcDef Stmt Decl VarDecl VarType Assign Return
+%type <ast_val> FuncDef ProcDef Stmt Decl VarDecl VarType Assign VarAssign Return
 %type <block_val> Block
 %type <int_val> Number
 
@@ -155,6 +155,11 @@ Stmt
         ast->stmt = unique_ptr<BaseAST>($1);
         $$ = ast;
     }
+    | Assign {
+        auto ast = new StmtAST();
+        ast->stmt = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
     ;
 
 Decl
@@ -178,6 +183,23 @@ VarType
     : INTEGER {
         auto ast = new VarTypeAST();
         ast->type = *unique_ptr<string>($1);
+        $$ = ast;
+    }
+    ;
+
+Assign
+    : VarAssign {
+        auto ast = new AssignAST();
+        ast->assign = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    ;
+
+VarAssign
+    : IDENT ASSIGN Number {
+        auto ast = new VarAssignAST();
+        ast->ident = *unique_ptr<string>($1);
+        ast->number = *unique_ptr<int>(new int($3));
         $$ = ast;
     }
     ;

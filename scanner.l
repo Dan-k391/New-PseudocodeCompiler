@@ -45,6 +45,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {Operator}      { return yytext[0]; }
 
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
+"<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
 "FUNCTION"      { yylval.str_val = new string(yytext); return FUNCTION; }
 "ENDFUNCTION"   { yylval.str_val = new string(yytext); return ENDFUNCTION; }

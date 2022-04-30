@@ -214,6 +214,39 @@ public:
     }
 };
 
+class AssignAST : public BaseAST {
+public:
+    unique_ptr<BaseAST> assign;
+
+    string getTypeName() const override {
+        return "Assign";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        assign->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class VarAssignAST : public BaseAST {
+public:
+    string ident;
+    int number;
+
+    string getTypeName() const override {
+        return "VarAssign";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        cout << prefix << "  " << "Ident: " << ident << "," << endl;
+        // 多两个空格让number的输出更美观
+        cout << prefix << "  " << "Number: " << number << "," << endl;
+        cout << prefix << "}" << endl;
+    }
+};
+
 class ReturnAST : public BaseAST {
 public:
     int number;
