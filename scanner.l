@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <string>
 #include <memory>
+#include <iostream>
 
 // 因为 Flex 会用到 Bison 中关于 token 的定义
 // 所以需要 include Bison 生成的头文件
@@ -15,11 +16,17 @@
 
 using namespace std;
 
+void yyerror(const char *msg);
+int cur_line = 1;
+
 %}
 
 /* 空白符和注释 */
-WhiteSpace    [ \t\n\r]*
+NewLine       \n
+WhiteSpace    [ \t\r]*
 LineComment   "//".*$
+
+Operator     [+\-*/=,:!<>()\[\]]
 
 /* 标识符 */
 Identifier    [a-zA-Z_][a-zA-Z0-9_]*
@@ -31,8 +38,11 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 %%
 
+{NewLine}       { cur_line++; }
 {WhiteSpace}    { /* 忽略, 不做任何操作 */ }
 {LineComment}   { /* 忽略, 不做任何操作 */ }
+
+{Operator}      { return yytext[0]; }
 
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
@@ -49,6 +59,10 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 {Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 
-.               { return yytext[0]; }
+.               { yyerror(yytext); }
 
 %%
+
+void yyerror(const char *msg) {
+    cerr << "Unrecognized character at line " << cur_line << ": '" << msg << "'" << endl;
+}

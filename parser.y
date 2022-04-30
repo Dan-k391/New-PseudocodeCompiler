@@ -15,7 +15,7 @@
 #include "AST.h"
 
 int yylex();
-void yyerror(unique_ptr<BaseAST> &ast, const char *s);
+void yyerror(unique_ptr<BaseAST> &ast, const char *msg);
 
 using namespace std;
 
@@ -198,6 +198,6 @@ Number
 
 %%
 
-void yyerror(unique_ptr<BaseAST> &ast, const char *s) {
-    cerr << "error: " << s << endl;
+void yyerror(unique_ptr<BaseAST> &ast, const char *msg) {
+    cerr << "error: " << msg << endl;
 }
