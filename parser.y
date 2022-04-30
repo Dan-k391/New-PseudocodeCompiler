@@ -128,7 +128,7 @@ ProcDef
     : PROCEDURE IDENT '(' ')' Block ENDPROCEDURE {
         auto ast = new ProcDefAST();
         ast->ident = *unique_ptr<string>($2);
-        ast->block = unique_ptr<BlockAST>($5);
+        ast->block = unique_ptr<BaseAST>($5);
         $$ = ast;
     }
     ;
