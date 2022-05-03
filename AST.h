@@ -7,7 +7,12 @@
 #include <memory>
 #include <string>
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::unique_ptr;
+using std::make_unique;
+using std::cout;
+using std::endl;
 
 
 /*
@@ -82,17 +87,72 @@ public:
     virtual void dump(string prefix) const = 0;
 };
 
-class StmtAST : public BaseAST {
+class CompUnitAST : public BaseAST {
 public:
-    unique_ptr<BaseAST> stmt;
+    unique_ptr<BaseAST> def;
 
     string getTypeName() const override {
-        return "Stmt";
+        return "CompUnit";
     }
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        stmt->dump(prefix + "  ");
+        def->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class FuncDefAST : public BaseAST {
+public:
+    // 还是直接使用字符串作为参数名，不多套一层了
+    // 还是得套😂
+    unique_ptr<BaseAST> ident;
+    unique_ptr<BaseAST> var_type;
+    unique_ptr<BaseAST> block;
+
+    string getTypeName() const override {
+        return "FuncDef";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        ident->dump(prefix + "  ");
+        var_type->dump(prefix + "  ");
+        block->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class ProcDefAST : public BaseAST {
+public:
+    // 还是直接使用字符串作为参数名，不多套一层了
+    // 还是得套😂
+    unique_ptr<BaseAST> ident;
+    unique_ptr<BaseAST> block;
+
+    string getTypeName() const override {
+        return "ProcDef";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        ident->dump(prefix + "  ");
+        block->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class IdentAST : public BaseAST {
+public:
+    string value;
+
+    string getTypeName() const override {
+        return "Ident";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        cout << prefix << "  " << "Value: " << value << endl;
         cout << prefix << "}" << endl;
     }
 };
@@ -114,57 +174,83 @@ public:
     }
 };
 
-class CompUnitAST : public BaseAST {
+class StmtAST : public BaseAST {
 public:
-    unique_ptr<BaseAST> def;
+    unique_ptr<BaseAST> stmt;
 
     string getTypeName() const override {
-        return "CompUnit";
+        return "Stmt";
     }
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        def->dump(prefix + "  ");
+        stmt->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }
 };
 
-class FuncDefAST : public BaseAST {
+class ExprAST : public BaseAST {
 public:
-    // 还是直接使用字符串作为参数名，不多套一层了
-    string ident;
-    unique_ptr<BaseAST> var_type;
-    unique_ptr<BaseAST> block;
+    unique_ptr<BaseAST> expr;
 
     string getTypeName() const override {
-        return "FuncDef";
+        return "Expr";
     }
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        // 多两个空格让ident的输出更美观
-        cout << prefix << "  " << "Ident: " << ident << endl;
-        var_type->dump(prefix + "  ");
-        block->dump(prefix + "  ");
+        expr->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }
 };
 
-class ProcDefAST : public BaseAST {
+class PrimaryExprAST : public BaseAST {
 public:
-    // 还是直接使用字符串作为参数名，不多套一层了
-    string ident;
-    unique_ptr<BaseAST> block;
+    unique_ptr<BaseAST> expr;
 
     string getTypeName() const override {
-        return "ProcDef";
+        return "PrimaryExpr";
     }
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        // 多两个空格让ident的输出更美观
-        cout << prefix << "  " << "Ident: " << ident << endl;
-        block->dump(prefix + "  ");
+        expr->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class UnaryExprAST : public BaseAST {
+public:
+    string op;
+    unique_ptr<BaseAST> expr;
+
+    string getTypeName() const override {
+        return "UnaryExpr";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        cout << prefix << "  " << "Op: " << op << endl;
+        expr->dump(prefix + "  ");
+        cout << prefix << "}" << endl;
+    }
+};
+
+class BinaryExprAST : public BaseAST {
+public:
+    unique_ptr<BaseAST> lhs;
+    string op;
+    unique_ptr<BaseAST> rhs;
+
+    string getTypeName() const override {
+        return "BinaryExpr";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << "{" << endl;
+        lhs->dump(prefix + "  ");
+        cout << prefix << "  " << "Op: " << op << endl;
+        rhs->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }
 };
@@ -232,7 +318,7 @@ public:
 class VarAssignAST : public BaseAST {
 public:
     string ident;
-    int number;
+    unique_ptr<BaseAST> expr;
 
     string getTypeName() const override {
         return "VarAssign";
@@ -241,15 +327,14 @@ public:
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
         cout << prefix << "  " << "Ident: " << ident << "," << endl;
-        // 多两个空格让number的输出更美观
-        cout << prefix << "  " << "Number: " << number << "," << endl;
+        expr->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }
 };
 
 class ReturnAST : public BaseAST {
 public:
-    int number;
+    unique_ptr<BaseAST> expr;
 
     string getTypeName() const override {
         return "Return";
@@ -257,9 +342,21 @@ public:
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        // 多两个空格让ident的输出更美观
-        cout << prefix << "  " << "Number: " << number << "," << endl;
+        expr->dump(prefix + "  ");
         cout << prefix << "}" << endl;
+    }
+};
+
+class NumberAST : public BaseAST {
+public:
+    int value;
+
+    string getTypeName() const override {
+        return "Number";
+    }
+
+    void dump(string prefix) const override {
+        cout << prefix << getTypeName() << ": " << value << "," << endl;
     }
 };
 

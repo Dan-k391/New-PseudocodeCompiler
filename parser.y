@@ -31,12 +31,13 @@ using namespace std;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
-%token <str_val> DECLARE ASSIGN INTEGER
+%token <str_val> DECLARE INTEGER NOT MOD AND OR
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef ProcDef Stmt Decl VarDecl VarType Assign VarAssign Return
+%type <ast_val> FuncDef ProcDef Ident Stmt Expr PrimaryExpr UnaryExpr BinaryExpr
+%type <ast_val> Decl VarDecl VarType Assign VarAssign Return Number
 %type <block_val> Block
-%type <int_val> Number
+%type <str_val> UnaryOp BinaryOp ArithOp RelOp
 
 %%
 
@@ -115,9 +116,9 @@ CompUnit
     ;
 
 FuncDef
-    : FUNCTION IDENT '(' ')' RETURNS VarType Block ENDFUNCTION {
+    : FUNCTION Ident '(' ')' RETURNS VarType Block ENDFUNCTION {
         auto ast = new FuncDefAST();
-        ast->ident = *unique_ptr<string>($2);
+        ast->ident = unique_ptr<BaseAST>($2);
         ast->var_type = unique_ptr<BaseAST>($6);
         ast->block = unique_ptr<BaseAST>($7);
         $$ = ast;
@@ -125,10 +126,18 @@ FuncDef
     ;
 
 ProcDef
-    : PROCEDURE IDENT '(' ')' Block ENDPROCEDURE {
+    : PROCEDURE Ident '(' ')' Block ENDPROCEDURE {
         auto ast = new ProcDefAST();
-        ast->ident = *unique_ptr<string>($2);
+        ast->ident = unique_ptr<BaseAST>($2);
         ast->block = unique_ptr<BaseAST>($5);
+        $$ = ast;
+    }
+    ;
+
+Ident
+    : IDENT{
+        auto ast = new IdentAST();
+        ast->value = *unique_ptr<string>($1);
         $$ = ast;
     }
     ;
@@ -159,6 +168,127 @@ Stmt
         auto ast = new StmtAST();
         ast->stmt = unique_ptr<BaseAST>($1);
         $$ = ast;
+    }
+    ;
+
+Expr
+    : PrimaryExpr {
+        auto ast = new ExprAST();
+        ast->expr = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | UnaryExpr {
+        auto ast = new ExprAST();
+        ast->expr = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | BinaryExpr {
+        auto ast = new ExprAST();
+        ast->expr = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    ;
+
+PrimaryExpr
+    : Ident {
+        auto ast = new PrimaryExprAST();
+        ast->expr = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | Number {
+        auto ast = new PrimaryExprAST();
+        ast->expr = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | '(' Expr ')' {
+        auto ast = new PrimaryExprAST();
+        ast->expr = unique_ptr<BaseAST>($2);
+        $$ = ast;
+    }
+    ;
+
+UnaryExpr
+    : UnaryOp Expr {
+        auto ast = new UnaryExprAST();
+        ast->op = *unique_ptr<string>($1);
+        ast->expr = unique_ptr<BaseAST>($2);
+        $$ = ast;
+    }
+    ;
+
+UnaryOp
+    : '+' {
+        $$ = new string("+");
+    }
+    | '-' {
+        $$ = new string("-");
+    }
+    | NOT {
+        $$ = new string("NOT");
+    }
+    ;
+
+BinaryExpr
+    : Expr BinaryOp Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>($2);
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
+    }
+    ;
+
+BinaryOp
+    : ArithOp {
+        $$ = $1;
+    }
+    | RelOp {
+        $$ = $1;
+    }
+    ;
+
+ArithOp
+    : '+' {
+        $$ = new string("+");
+    }
+    | '-' {
+        $$ = new string("-");
+    }
+    | '*' {
+        $$ = new string("*");
+    }
+    | '/' {
+        $$ = new string("/");
+    }
+    | MOD {
+        $$ = new string("MOD");
+    }
+    ;
+
+RelOp
+    : '=' {
+        $$ = new string("=");
+    }
+    | '<' '>' {
+        $$ = new string("<>");
+    }
+    | '<' {
+        $$ = new string("<");
+    }
+    | '>' {
+        $$ = new string(">");
+    }
+    | '<' '=' {
+        $$ = new string("<=");
+    }
+    | '>' '=' {
+        $$ = new string(">=");
+    }
+    | AND {
+        $$ = new string("AND");
+    }
+    | OR {
+        $$ = new string("OR");
     }
     ;
 
@@ -196,25 +326,27 @@ Assign
     ;
 
 VarAssign
-    : IDENT ASSIGN Number {
+    : IDENT '<' '-' Expr {
         auto ast = new VarAssignAST();
         ast->ident = *unique_ptr<string>($1);
-        ast->number = *unique_ptr<int>(new int($3));
+        ast->expr = unique_ptr<BaseAST>($4);
         $$ = ast;
     }
     ;
 
 Return
-    : RETURN Number {
+    : RETURN Expr {
         auto ast = new ReturnAST();
-        ast->number = *unique_ptr<int>(new int($2));
+        ast->expr = unique_ptr<BaseAST>($2);
         $$ = ast;
     }
     ;
 
 Number
     : INT_CONST {
-        $$ = $1;
+        auto ast = new NumberAST();
+        ast->value = *unique_ptr<int>(new int($1));
+        $$ = ast;
     }
     ;
 

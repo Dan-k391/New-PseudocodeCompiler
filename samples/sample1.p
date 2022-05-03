@@ -1,5 +1,5 @@
 PROCEDURE main()
     DECLARE temp: INTEGER
-    temp <- 999
-    RETURN 0
+    temp <- 999 * 7
+    RETURN 0 + 9
 ENDPROCEDURE

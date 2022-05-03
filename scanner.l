@@ -42,10 +42,9 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {WhiteSpace}    { /* 忽略, 不做任何操作 */ }
 {LineComment}   { /* 忽略, 不做任何操作 */ }
 
-{Operator}      { return yytext[0]; }
+{Operator}      { yylval.str_val = new string(yytext); return yytext[0]; }
 
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
-"<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
 "FUNCTION"      { yylval.str_val = new string(yytext); return FUNCTION; }
 "ENDFUNCTION"   { yylval.str_val = new string(yytext); return ENDFUNCTION; }
