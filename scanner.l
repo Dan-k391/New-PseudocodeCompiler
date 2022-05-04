@@ -44,14 +44,22 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 {Operator}      { yylval.str_val = new string(yytext); return yytext[0]; }
 
-"DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
-"INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
 "FUNCTION"      { yylval.str_val = new string(yytext); return FUNCTION; }
 "ENDFUNCTION"   { yylval.str_val = new string(yytext); return ENDFUNCTION; }
 "PROCEDURE"     { yylval.str_val = new string(yytext); return PROCEDURE; }
 "ENDPROCEDURE"  { yylval.str_val = new string(yytext); return ENDPROCEDURE; }
 "RETURNS"       { yylval.str_val = new string(yytext); return RETURNS; }
 "RETURN"        { yylval.str_val = new string(yytext); return RETURN; }
+"DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
+"<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
+"INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
+"<="            { yylval.str_val = new string(yytext); return LE; }
+">+"            { yylval.str_val = new string(yytext); return GE; }
+"<>"            { yylval.str_val = new string(yytext); return NE; }
+"MOD"           { yylval.str_val = new string(yytext); return MOD; }
+"AND"           { yylval.str_val = new string(yytext); return AND; }
+"OR"            { yylval.str_val = new string(yytext); return OR; }
+"NOT"           { yylval.str_val = new string(yytext); return NOT; }
 
 {Identifier}    { yylval.str_val = new string(yytext); return IDENT; }
 

@@ -1,5 +1,7 @@
-PROCEDURE main()
-    DECLARE temp: INTEGER
-    temp <- 999 * 7
-    RETURN 0 + 9
-ENDPROCEDURE
+FUNCTION add() RETURNS INTEGER
+    DECLARE a: INTEGER
+    DECLARE b: INTEGER
+    a <- 1
+    b <- 2
+    RETURN a < b
+ENDFUNCTION

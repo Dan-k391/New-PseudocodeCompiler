@@ -144,16 +144,14 @@ public:
 
 class IdentAST : public BaseAST {
 public:
-    string value;
+    string name;
 
     string getTypeName() const override {
         return "Ident";
     }
 
     void dump(string prefix) const override {
-        cout << prefix << getTypeName() << "{" << endl;
-        cout << prefix << "  " << "Value: " << value << endl;
-        cout << prefix << "}" << endl;
+        cout << prefix << getTypeName() << ": " << name << endl;
     }
 };
 
@@ -272,7 +270,8 @@ public:
 
 class VarDeclAST : public BaseAST {
 public:
-    string ident;
+    // 先多套一层，看后期能否简化
+    unique_ptr<BaseAST> ident;
     unique_ptr<BaseAST> type;
 
     string getTypeName() const override {
@@ -281,7 +280,7 @@ public:
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        cout << prefix << "  " << "Ident: " << ident << "," << endl;
+        ident->dump(prefix + "  ");
         type->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }
@@ -317,7 +316,8 @@ public:
 
 class VarAssignAST : public BaseAST {
 public:
-    string ident;
+    // 先多套一层，看后期能否简化
+    unique_ptr<BaseAST> ident;
     unique_ptr<BaseAST> expr;
 
     string getTypeName() const override {
@@ -326,7 +326,7 @@ public:
 
     void dump(string prefix) const override {
         cout << prefix << getTypeName() << "{" << endl;
-        cout << prefix << "  " << "Ident: " << ident << "," << endl;
+        ident->dump(prefix + "  ");
         expr->dump(prefix + "  ");
         cout << prefix << "}" << endl;
     }

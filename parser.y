@@ -31,13 +31,21 @@ using namespace std;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
-%token <str_val> DECLARE INTEGER NOT MOD AND OR
+%token <str_val> DECLARE ASSIGN INTEGER LE GE NE MOD AND OR NOT
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef ProcDef Ident Stmt Expr PrimaryExpr UnaryExpr BinaryExpr
 %type <ast_val> Decl VarDecl VarType Assign VarAssign Return Number
 %type <block_val> Block
 %type <str_val> UnaryOp BinaryOp ArithOp RelOp
+
+%left OR
+%left AND
+%left '=' NE
+%left '<' '>' LE GE
+%left '+' '-'
+%left '*' '/' MOD
+%right NOT UMINUS UPLUS
 
 %%
 
@@ -137,7 +145,7 @@ ProcDef
 Ident
     : IDENT{
         auto ast = new IdentAST();
-        ast->value = *unique_ptr<string>($1);
+        ast->name = *unique_ptr<string>($1);
         $$ = ast;
     }
     ;
@@ -217,10 +225,10 @@ UnaryExpr
     ;
 
 UnaryOp
-    : '+' {
+    : '+' %prec UPLUS {
         $$ = new string("+");
     }
-    | '-' {
+    | '-' %prec UMINUS {
         $$ = new string("-");
     }
     | NOT {
@@ -269,7 +277,7 @@ RelOp
     : '=' {
         $$ = new string("=");
     }
-    | '<' '>' {
+    | NE {
         $$ = new string("<>");
     }
     | '<' {
@@ -278,10 +286,10 @@ RelOp
     | '>' {
         $$ = new string(">");
     }
-    | '<' '=' {
+    | LE {
         $$ = new string("<=");
     }
-    | '>' '=' {
+    | GE {
         $$ = new string(">=");
     }
     | AND {
@@ -301,9 +309,9 @@ Decl
     ;
 
 VarDecl
-    : DECLARE IDENT ':' VarType {
+    : DECLARE Ident ':' VarType {
         auto ast = new VarDeclAST();
-        ast->ident = *unique_ptr<string>($2);
+        ast->ident = unique_ptr<BaseAST>($2);
         ast->type = unique_ptr<BaseAST>($4);
         $$ = ast;
     }
@@ -326,10 +334,10 @@ Assign
     ;
 
 VarAssign
-    : IDENT '<' '-' Expr {
+    : Ident ASSIGN Expr {
         auto ast = new VarAssignAST();
-        ast->ident = *unique_ptr<string>($1);
-        ast->expr = unique_ptr<BaseAST>($4);
+        ast->ident = unique_ptr<BaseAST>($1);
+        ast->expr = unique_ptr<BaseAST>($3);
         $$ = ast;
     }
     ;
