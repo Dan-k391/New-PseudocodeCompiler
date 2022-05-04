@@ -2,6 +2,6 @@ FUNCTION add() RETURNS INTEGER
     DECLARE a: INTEGER
     DECLARE b: INTEGER
     a <- 1
-    b <- 2
-    RETURN a < b
+    b <- 2 + 9 * -9
+    RETURN a - b
 ENDFUNCTION

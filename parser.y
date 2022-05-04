@@ -37,7 +37,6 @@ using namespace std;
 %type <ast_val> FuncDef ProcDef Ident Stmt Expr PrimaryExpr UnaryExpr BinaryExpr
 %type <ast_val> Decl VarDecl VarType Assign VarAssign Return Number
 %type <block_val> Block
-%type <str_val> UnaryOp BinaryOp ArithOp RelOp
 
 %left OR
 %left AND
@@ -216,87 +215,117 @@ PrimaryExpr
     ;
 
 UnaryExpr
-    : UnaryOp Expr {
+    : '+' Expr {
         auto ast = new UnaryExprAST();
-        ast->op = *unique_ptr<string>($1);
+        ast->op = *unique_ptr<string>(new string("+"));
+        ast->expr = unique_ptr<BaseAST>($2);
+        $$ = ast;
+    }
+    | '-' Expr {
+        auto ast = new UnaryExprAST();
+        ast->op = *unique_ptr<string>(new string("-"));
+        ast->expr = unique_ptr<BaseAST>($2);
+        $$ = ast;
+    }
+    | NOT Expr {
+        auto ast = new UnaryExprAST();
+        ast->op = *unique_ptr<string>(new string("NOT"));
         ast->expr = unique_ptr<BaseAST>($2);
         $$ = ast;
     }
     ;
 
-UnaryOp
-    : '+' %prec UPLUS {
-        $$ = new string("+");
-    }
-    | '-' %prec UMINUS {
-        $$ = new string("-");
-    }
-    | NOT {
-        $$ = new string("NOT");
-    }
-    ;
-
 BinaryExpr
-    : Expr BinaryOp Expr {
+    : Expr '+' Expr {
         auto ast = new BinaryExprAST();
         ast->lhs = unique_ptr<BaseAST>($1);
-        ast->op = *unique_ptr<string>($2);
+        ast->op = *unique_ptr<string>(new string("+"));
         ast->rhs = unique_ptr<BaseAST>($3);
         $$ = ast;
     }
-    ;
-
-BinaryOp
-    : ArithOp {
-        $$ = $1;
+    | Expr '-' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("-"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | RelOp {
-        $$ = $1;
+    | Expr '*' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("*"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    ;
-
-ArithOp
-    : '+' {
-        $$ = new string("+");
+    | Expr '/' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("/"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | '-' {
-        $$ = new string("-");
+    | Expr MOD Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("MOD"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | '*' {
-        $$ = new string("*");
+    | Expr '=' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("="));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | '/' {
-        $$ = new string("/");
+    | Expr NE Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("<>"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | MOD {
-        $$ = new string("MOD");
+    | Expr '>' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string(">"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    ;
-
-RelOp
-    : '=' {
-        $$ = new string("=");
+    | Expr '<' Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("<"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | NE {
-        $$ = new string("<>");
+    | Expr LE Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("<="));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | '<' {
-        $$ = new string("<");
+    | Expr GE Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string(">="));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | '>' {
-        $$ = new string(">");
+    | Expr AND Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("AND"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
-    | LE {
-        $$ = new string("<=");
-    }
-    | GE {
-        $$ = new string(">=");
-    }
-    | AND {
-        $$ = new string("AND");
-    }
-    | OR {
-        $$ = new string("OR");
+    | Expr OR Expr {
+        auto ast = new BinaryExprAST();
+        ast->lhs = unique_ptr<BaseAST>($1);
+        ast->op = *unique_ptr<string>(new string("OR"));
+        ast->rhs = unique_ptr<BaseAST>($3);
+        $$ = ast;
     }
     ;
 
