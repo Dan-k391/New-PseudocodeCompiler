@@ -1,2 +1,2 @@
 # New-PseudocodeCompiler
-Basic source code of Pseudocode compiler using flex, bison and llvm
+Source code of Pseudocode compiler using flex, bison and llvm
