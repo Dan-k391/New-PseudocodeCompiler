@@ -1,3 +1,5 @@
+%define parse.error detailed
+
 %code requires {
     #include <iostream>
     #include <memory>
@@ -49,7 +51,7 @@ using namespace std;
 %%
 
 /*
-CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Decl);
+CompUnit    ::= [CompUnit] (FuncDef | ProcDef | BLOCK);
 
 (* FuncDef *)
 FuncDef     ::= "FUNCTION" Ident "(" [Params] ")" "RETURNS" VarType Block "ENDFUNCTION";
@@ -116,6 +118,11 @@ CompUnit
         ast = move(comp_unit);
     }
     | ProcDef {
+        auto comp_unit = make_unique<CompUnitAST>();
+        comp_unit->def = unique_ptr<BaseAST>($1);
+        ast = move(comp_unit);
+    }
+    | Block {
         auto comp_unit = make_unique<CompUnitAST>();
         comp_unit->def = unique_ptr<BaseAST>($1);
         ast = move(comp_unit);
@@ -215,13 +222,13 @@ PrimaryExpr
     ;
 
 UnaryExpr
-    : '+' Expr {
+    : '+' Expr %prec UPLUS {
         auto ast = new UnaryExprAST();
         ast->op = *unique_ptr<string>(new string("+"));
         ast->expr = unique_ptr<BaseAST>($2);
         $$ = ast;
     }
-    | '-' Expr {
+    | '-' Expr %prec UMINUS {
         auto ast = new UnaryExprAST();
         ast->op = *unique_ptr<string>(new string("-"));
         ast->expr = unique_ptr<BaseAST>($2);
@@ -390,5 +397,5 @@ Number
 %%
 
 void yyerror(unique_ptr<BaseAST> &ast, const char *msg) {
-    cerr << "error: " << msg << endl;
+    cerr << "\033[31;1m" << "error: " << msg << "\033[0m" << endl;
 }
