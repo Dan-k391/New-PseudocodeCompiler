@@ -127,8 +127,8 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "│   ", 0);
-        var_type->dump(prefix + "│   ", 0);
+        ident->dump(prefix + "│  ", 0);
+        var_type->dump(prefix + "│  ", 0);
         block->dump(prefix, 0);
         
     }
@@ -151,8 +151,8 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "│   ", 0);
-        block->dump(prefix + "│   ", 0);
+        ident->dump(prefix + "│  ", 0);
+        block->dump(prefix + "│  ", 0);
         
     }
 };
@@ -196,9 +196,9 @@ public:
         }
         for(auto stmt = stmts->begin(); stmt != stmts->end(); stmt++) {
             if (stmt == stmts->end() - 1) {
-                (*stmt)->dump(prefix + "    ", 1);
+                (*stmt)->dump(prefix + "   ", 1);
             } else {
-                (*stmt)->dump(prefix + "    ", 0);
+                (*stmt)->dump(prefix + "   ", 0);
             }
         }
     }
@@ -218,10 +218,10 @@ public:
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
             cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            stmt->dump(prefix + "    ", 1);
+            stmt->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            stmt->dump(prefix + "│   ", 0);
+            stmt->dump(prefix + "│  ", 0);
         }
     }
 };
@@ -240,10 +240,10 @@ public:
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
             cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "    ", 1);
+            expr->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│   ", 1);
+            expr->dump(prefix + "│  ", 1);
         }
     }
 };
@@ -262,10 +262,10 @@ public:
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
             cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "    ", 1);
+            expr->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│   ", 0);
+            expr->dump(prefix + "│  ", 0);
         }
     }
 };
@@ -283,13 +283,8 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "    ", 1);
-        } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│   ", 0);
-        }        
+        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+        expr->dump(prefix + "   ", 1);     
     }
 };
 
@@ -307,9 +302,9 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        lhs->dump(prefix + "    ", 0);
-        rhs->dump(prefix + "    ", 1);
+        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+        lhs->dump(prefix + "   ", 0);
+        rhs->dump(prefix + "   ", 1);
     }
 };
 
@@ -326,7 +321,7 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        decl->dump(prefix + "    ", 1);
+        decl->dump(prefix + "   ", 1);
     }
 };
 
@@ -345,8 +340,8 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "    ", 0);
-        type->dump(prefix + "    ", 1);
+        ident->dump(prefix + "   ", 0);
+        type->dump(prefix + "   ", 1);
     }
 };
 
@@ -383,7 +378,7 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        assign->dump(prefix + "    ", 1);   
+        assign->dump(prefix + "   ", 1);   
     }
 };
 
@@ -402,8 +397,8 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "    ", 0);
-        expr->dump(prefix + "    ", 1);
+        ident->dump(prefix + "   ", 0);
+        expr->dump(prefix + "   ", 1);
     }
 };
 
@@ -421,10 +416,10 @@ public:
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
             cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "    ", 1);
+            expr->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│   ", 0);
+            expr->dump(prefix + "│  ", 0);
         }
     }
 };
