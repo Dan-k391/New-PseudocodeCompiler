@@ -51,6 +51,15 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
 "<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
+"IF"            { yylval.str_val = new string(yytext); return IF; }
+"THEN"          { yylval.str_val = new string(yytext); return THEN; }
+"ELSE"          { yylval.str_val = new string(yytext); return ELSE; }
+"ENDIF"         { yylval.str_val = new string(yytext); return ENDIF; }
+"WHILE"         { yylval.str_val = new string(yytext); return WHILE; }
+"ENDWHILE"      { yylval.str_val = new string(yytext); return ENDWHILE; }
+"FOR"           { yylval.str_val = new string(yytext); return FOR; }
+"TO"            { yylval.str_val = new string(yytext); return TO; }
+"NEXT"          { yylval.str_val = new string(yytext); return NEXT; }
 "<="            { yylval.str_val = new string(yytext); return LE; }
 ">+"            { yylval.str_val = new string(yytext); return GE; }
 "<>"            { yylval.str_val = new string(yytext); return NE; }

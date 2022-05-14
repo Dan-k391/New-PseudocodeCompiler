@@ -33,11 +33,13 @@ using namespace std;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
-%token <str_val> DECLARE ASSIGN INTEGER LE GE NE MOD AND OR NOT
+%token <str_val> DECLARE ASSIGN INTEGER
+%token <str_val> IF THEN ELSE ENDIF WHILE ENDWHILE FOR TO NEXT
+%token <str_val> LE GE NE MOD AND OR NOT
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef ProcDef Ident Stmt Expr PrimaryExpr UnaryExpr BinaryExpr
-%type <ast_val> Decl VarDecl VarType Assign VarAssign Return Number
+%type <ast_val> Decl VarDecl VarType Assign VarAssign If While For Return Number
 %type <block_val> Block
 
 %left OR
@@ -179,6 +181,21 @@ Stmt
         $$ = ast;
     }
     | Assign {
+        auto ast = new StmtAST();
+        ast->stmt = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | If {
+        auto ast = new StmtAST();
+        ast->stmt = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | While {
+        auto ast = new StmtAST();
+        ast->stmt = unique_ptr<BaseAST>($1);
+        $$ = ast;
+    }
+    | For {
         auto ast = new StmtAST();
         ast->stmt = unique_ptr<BaseAST>($1);
         $$ = ast;
@@ -374,6 +391,42 @@ VarAssign
         auto ast = new VarAssignAST();
         ast->ident = unique_ptr<BaseAST>($1);
         ast->expr = unique_ptr<BaseAST>($3);
+        $$ = ast;
+    }
+    ;
+
+If
+    : IF Expr THEN Block ENDIF {
+        auto ast = new IfAST();
+        ast->cond = unique_ptr<BaseAST>($2);
+        ast->block = unique_ptr<BaseAST>($4);
+        $$ = ast;
+    }
+    | IF Expr THEN Block ELSE Block ENDIF {
+        auto ast = new IfAST();
+        ast->cond = unique_ptr<BaseAST>($2);
+        ast->block = unique_ptr<BaseAST>($4);
+        ast->elseBlock = unique_ptr<BaseAST>($6);
+        $$ = ast;
+    }
+    ;
+
+While
+    : WHILE Expr Block ENDWHILE {
+        auto ast = new WhileAST();
+        ast->cond = unique_ptr<BaseAST>($2);
+        ast->block = unique_ptr<BaseAST>($3);
+        $$ = ast;
+    }
+    ;
+
+For
+    : FOR Ident ASSIGN Expr TO Expr Block NEXT {
+        auto ast = new ForAST();
+        ast->ident = unique_ptr<BaseAST>($2);
+        ast->exprFrom = unique_ptr<BaseAST>($4);
+        ast->exprTo = unique_ptr<BaseAST>($6);
+        ast->block = unique_ptr<BaseAST>($7);
         $$ = ast;
     }
     ;

@@ -22,7 +22,7 @@ int main(int argc, const char *argv[]) {
     assert(!ret);
 
     // dump AST
-    ast->dump("");
+    ast->dump("", 0);
     cout << endl;
     
     return 0;
