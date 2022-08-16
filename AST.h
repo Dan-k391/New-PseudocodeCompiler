@@ -1,6 +1,6 @@
 #pragma once
-#ifndef AST_H
-#define AST_H
+#ifndef __AST_H__
+#define __AST_H__
 
 #include <iostream>
 #include <vector>
@@ -13,68 +13,6 @@ using std::unique_ptr;
 using std::make_unique;
 using std::cout;
 using std::endl;
-
-
-/*
-CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Decl);
-
-(* FuncDef *)
-FuncDef     ::= "FUNCTION" Ident "(" [Params] ")" "RETURNS" VarType Block "ENDFUNCTION";
-(* FuncDef *)
-
-(* ProcDef *)
-ProcDef     ::= "PROCEDURE" Ident "(" [Params] ")" Block "ENDPROCEDURE";
-(* ProcDef *)
-
-Params      ::= Param {"," Param};
-Param       ::= Ident ":" VarType;
-
-(* Block *)
-Block       ::= {Block} Stmt;
-Stmt        ::= Decl | Assign | If | While | For | Return | Call;
-(* Block *)
-
-(* Expr *)
-Expr        ::= PrimaryExpr | UnaryExpr | BinaryExpr;
-PrimaryExpr ::= Ident | IntConst | RealConst | CharConst | StringConst | BoolConst | "(" Expr ")" | LVal;
-UnaryExpr   ::= UnaryOp Expr;
-UnaryOp     ::= "+" | "-" | "NOT";
-BinaryExpr  ::= Expr BinaryOp Expr;
-BinaryOp    ::= ArithOp | RelOp;
-ArithOp     ::= "+" | "-" | "*" | "/" | "MOD";
-RelOp       ::= "=" | "<" | ">" | "<=" | ">=" | "<>" | "AND" | "OR";
-(* Expr *)
-
-Decl        ::= (VarDecl | ArrDecl) Newline;
-VarDecl     ::= "DECLARE" Ident ":" VarType;
-VarType     ::= "INTEGER" | "REAL" | "CHAR" | "STRING" | "BOOLEAN";
-ArrDecl     ::= "DECLARE" Ident ":" "ARRAY" "[" Bounds "]" "OF" VarType;
-Bounds      ::= Bound {"," Bound};
-Bound       ::= Lower ":" Upper;
-Lower       ::= Expr;
-Upper       ::= Expr;
-
-Assign      ::= VarAssign | ArrAssign;
-VarAssign   ::= Ident "<-" Expr Newline;
-ArrAssign   ::= LVal "<-" Expr Newline;
-LVal        ::= Ident ["[" Indexes "]"];
-Indexes     ::= Index {"," Index};
-Index       ::= Expr;
-
-If          ::= "IF" Expr "THEN" Block ["ELSE" Block] "ENDIF" Newline;
-
-While       ::= "WHILE" Expr Block "ENDWHILE" Newline;
-
-For         ::= "FOR" Ident "<-" Expr "TO" Expr Block "NEXT" Newline;
-
-Return      ::= "RETURN" Expr Newline;
-
-Call        ::= "CALL" Ident "(" [ParamVals] ")" Newline;
-ParamVals   ::= ParamVals {"," ParamVal};
-ParamVal    ::= Expr;
-
-Newline     ::= "\n";
-*/
 
 class BaseAST;
 
@@ -89,6 +27,7 @@ public:
     virtual string getTypeName() const = 0;
     // 判断先判isLast再判else
     virtual void dump(string prefix, bool isLast) const = 0;
+    // virtual Value *codeGen() const = 0;
 };
 
 class CompUnitAST : public BaseAST {
@@ -107,6 +46,8 @@ public:
         cout << prefix << this->colSTART << getTypeName() << this->colEND << endl;
         def->dump(prefix, 1);
     }
+
+    // Value *codeGen() override;
 };
 
 // 留到后面改进dump函数
@@ -130,8 +71,9 @@ public:
         ident->dump(prefix + "│  ", 0);
         var_type->dump(prefix + "│  ", 0);
         block->dump(prefix, 0);
-        
     }
+
+    // Value *codeGen() override;
 };
 
 // 留到后面改进dump函数
@@ -153,8 +95,9 @@ public:
         cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
         ident->dump(prefix + "│  ", 0);
         block->dump(prefix + "│  ", 0);
-        
     }
+
+    // Value *codeGen() override;
 };
 
 class IdentAST : public BaseAST {
@@ -175,6 +118,8 @@ public:
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << name << endl;
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class BlockAST : public BaseAST {
@@ -209,6 +154,8 @@ public:
             }
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class StmtAST : public BaseAST {
@@ -225,12 +172,14 @@ public:
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
             cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            stmt->dump(prefix + "   ", 1);
+            stmt->dump(prefix + "   ", 0);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
             stmt->dump(prefix + "│  ", 0);
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class ExprAST : public BaseAST {
@@ -253,6 +202,8 @@ public:
             expr->dump(prefix + "│  ", 1);
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class PrimaryExprAST : public BaseAST {
@@ -272,9 +223,11 @@ public:
             expr->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│  ", 0);
+            expr->dump(prefix + "│  ", 1);
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class UnaryExprAST : public BaseAST {
@@ -290,9 +243,16 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
-        expr->dump(prefix + "   ", 1);     
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+            expr->dump(prefix + "   ", 1);
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+            expr->dump(prefix + "│  ", 1);
+        }
     }
+
+    // Value *codeGen() override;
 };
 
 class BinaryExprAST : public BaseAST {
@@ -309,10 +269,18 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
-        lhs->dump(prefix + "   ", 0);
-        rhs->dump(prefix + "   ", 1);
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+            lhs->dump(prefix + "   ", 0);
+            rhs->dump(prefix + "   ", 1);
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << "->Op: " << op << endl;
+            lhs->dump(prefix + "│  ", 0);
+            rhs->dump(prefix + "│  ", 1);
+        }
     }
+
+    // Value *codeGen() override;
 };
 
 class DeclAST : public BaseAST {
@@ -330,6 +298,8 @@ public:
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
         decl->dump(prefix + "   ", 1);
     }
+
+    // Value *codeGen() override;
 };
 
 class VarDeclAST : public BaseAST {
@@ -346,10 +316,18 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "   ", 0);
-        type->dump(prefix + "   ", 1);
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            ident->dump(prefix + "   ", 0);
+            type->dump(prefix + "   ", 1);
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            ident->dump(prefix + "│  ", 0);
+            type->dump(prefix + "│  ", 1);
+        }
     }
+
+    // Value *codeGen() override;
 };
 
 class VarTypeAST : public BaseAST {
@@ -370,6 +348,8 @@ public:
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << type << endl;
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class AssignAST : public BaseAST {
@@ -387,6 +367,8 @@ public:
         cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
         assign->dump(prefix + "   ", 1);   
     }
+
+    // Value *codeGen() override;
 };
 
 class VarAssignAST : public BaseAST {
@@ -403,10 +385,18 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "   ", 0);
-        expr->dump(prefix + "   ", 1);
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            ident->dump(prefix + "   ", 0);
+            expr->dump(prefix + "   ", 1);
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            ident->dump(prefix + "│  ", 0);
+            expr->dump(prefix + "│  ", 1);
+        }
     }
+
+    // Value *codeGen() override;
 };
 
 class IfAST : public BaseAST {
@@ -416,6 +406,7 @@ protected:
 public:
     unique_ptr<BaseAST> cond;
     unique_ptr<BaseAST> block;
+    bool hasElse = 0;
     unique_ptr<BaseAST> elseBlock;
 
     string getTypeName() const override {
@@ -423,11 +414,29 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        cond->dump(prefix + "   ", 0);
-        block->dump(prefix + "   ", 0);
-        elseBlock->dump(prefix + "   ", 1);
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            cond->dump(prefix + "   ", 0);
+            // 比较细节的写法
+            if (hasElse) {
+                block->dump(prefix + "   ", 0);
+                elseBlock->dump(prefix + "   ", 1);
+            } else {
+                block->dump(prefix + "   ", 1);
+            }
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
+            cond->dump(prefix + "│  ", 0);
+            if (hasElse) {
+                block->dump(prefix + "│  ", 0);
+                elseBlock->dump(prefix + "│  ", 1);
+            } else {
+                block->dump(prefix + "│  ", 1);
+            }
+        }
     }
+
+    // Value *codeGen() override;
 };
 
 class WhileAST : public BaseAST {
@@ -447,6 +456,8 @@ public:
         cond->dump(prefix + "   ", 0);
         block->dump(prefix + "   ", 1);
     }
+
+    // Value *codeGen() override;
 };
 
 class ForAST : public BaseAST {
@@ -470,6 +481,8 @@ public:
         exprTo->dump(prefix + "   ", 1);
         block->dump(prefix + "   ", 1);
     }
+
+    // Value *codeGen() override;
 };
 
 class ReturnAST : public BaseAST {
@@ -492,6 +505,8 @@ public:
             expr->dump(prefix + "│  ", 0);
         }
     }
+
+    // Value *codeGen() override;
 };
 
 class NumberAST : public BaseAST {
@@ -512,6 +527,8 @@ public:
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << value << endl;
         }
     }
+
+    // Value *codeGen() override;
 };
 
 #endif
