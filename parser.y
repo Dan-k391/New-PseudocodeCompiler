@@ -1,3 +1,7 @@
+/* To \dos
+1. Add ExprList
+*/
+
 %define parse.error detailed
 
 %code requires {
@@ -30,17 +34,21 @@ using namespace std;
     int int_val;
     BaseAST *ast_val;
     BlockAST *block_val;
+    StmtAST *stmt_val;
+    ExprAST *expr_val;
 }
 
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN
-%token <str_val> DECLARE ASSIGN INTEGER
+%token <str_val> CALL DECLARE ASSIGN INTEGER
 %token <str_val> IF THEN ELSE ENDIF WHILE ENDWHILE FOR TO NEXT
 %token <str_val> LE GE NE MOD AND OR NOT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef ProcDef Ident Stmt Expr PrimaryExpr UnaryExpr BinaryExpr
-%type <ast_val> Decl VarDecl VarType Assign VarAssign If While For Return Number
+%type <ast_val> VarType FuncDef ProcDef Number Params Param
 %type <block_val> Block
+/* Stmt and Expr act as a mid */
+%type <stmt_val> Stmt VarDecl VarAssign If While For Return
+%type <expr_val> Expr VarExpr PrimaryExpr UnaryExpr BinaryExpr CallExpr
 
 %left OR
 %left AND
@@ -131,29 +139,44 @@ CompUnit
     }
     ;
 
+Params
+    : %empty
+    | Param {
+        auto ast = new ParamsAST();
+        ast->params.push_back(unique_ptr<BaseAST>($1));
+        $$ = move(ast);
+    }
+    | Params Param {
+        $1->params->push_back(unique_ptr<BaseAST>($2));
+    }
+    ;
+
+Param
+    : IDENT ':' VarType {
+        auto ast = new ParamAST();
+        ast->ident = *unique_ptr<string>($1);
+        ast->type = *unique_ptr<string>($3);
+        ast = move(param);
+    }
+    ;
+
 FuncDef
-    : FUNCTION Ident '(' ')' RETURNS VarType Block ENDFUNCTION {
+    : FUNCTION IDENT '(' Params ')' RETURNS VarType Block ENDFUNCTION {
         auto ast = new FuncDefAST();
-        ast->ident = unique_ptr<BaseAST>($2);
-        ast->var_type = unique_ptr<BaseAST>($6);
-        ast->block = unique_ptr<BaseAST>($7);
+        ast->ident = *unique_ptr<string>($2);
+        ast->params = unique_ptr<BaseAST>($4);
+        ast->var_type = unique_ptr<BaseAST>($7);
+        ast->block = unique_ptr<BaseAST>($8);
         $$ = ast;
     }
     ;
 
 ProcDef
-    : PROCEDURE Ident '(' ')' Block ENDPROCEDURE {
+    : PROCEDURE IDENT '(' Params ')' Block ENDPROCEDURE {
         auto ast = new ProcDefAST();
-        ast->ident = unique_ptr<BaseAST>($2);
-        ast->block = unique_ptr<BaseAST>($5);
-        $$ = ast;
-    }
-    ;
-
-Ident
-    : IDENT{
-        auto ast = new IdentAST();
-        ast->name = *unique_ptr<string>($1);
+        ast->ident = *unique_ptr<string>($2);
+        ast->params = unique_ptr<BaseAST>($4);
+        ast->block = unique_ptr<BaseAST>($6);
         $$ = ast;
     }
     ;
@@ -161,79 +184,52 @@ Ident
 Block
     : Stmt {
         auto ast = new BlockAST();
-        ast->stmts->push_back(unique_ptr<BaseAST>($1));
+        ast->stmts->push_back(unique_ptr<StmtAST>($1));
         $$ = ast;
     }
     | Block Stmt {
-        $1->stmts->push_back(unique_ptr<BaseAST>($2));
+        $1->stmts->push_back(unique_ptr<StmtAST>($2));
     }
     ;
 
 Stmt
-    : Return {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | Decl {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | Assign {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | If {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | While {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | For {
-        auto ast = new StmtAST();
-        ast->stmt = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
+    : VarDecl
+    | VarAssign 
+    | If 
+    | While 
+    | For 
+    | Return 
     ;
 
 Expr
-    : PrimaryExpr {
-        auto ast = new ExprAST();
-        ast->expr = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | UnaryExpr {
-        auto ast = new ExprAST();
-        ast->expr = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
-    | BinaryExpr {
-        auto ast = new ExprAST();
-        ast->expr = unique_ptr<BaseAST>($1);
+    : PrimaryExpr 
+    | UnaryExpr 
+    | BinaryExpr
+    | CallExpr 
+    ;
+
+VarExpr
+    : IDENT {
+        auto ast = new VarExprAST();
+        ast->name = *unique_ptr<string>($1);
         $$ = ast;
     }
     ;
 
 PrimaryExpr
-    : Ident {
+    : VarExpr {
         auto ast = new PrimaryExprAST();
-        ast->expr = unique_ptr<BaseAST>($1);
+        ast->expr = unique_ptr<ExprAST>($1);
         $$ = ast;
     }
     | Number {
         auto ast = new PrimaryExprAST();
-        ast->expr = unique_ptr<BaseAST>($1);
+        ast->expr = unique_ptr<ExprAST>($1);
         $$ = ast;
     }
     | '(' Expr ')' {
         auto ast = new PrimaryExprAST();
-        ast->expr = unique_ptr<BaseAST>($2);
+        ast->expr = unique_ptr<ExprAST>($2);
         $$ = ast;
     }
     ;
@@ -353,43 +349,31 @@ BinaryExpr
     }
     ;
 
-Decl
-    : VarDecl {
-        auto ast = new DeclAST();
-        ast->decl = unique_ptr<BaseAST>($1);
+CallExpr
+    : CALL IDENT '(' ')' {
+        auto ast = new CallAST();
+        ast->ident = *unique_ptr<string>($2);
         $$ = ast;
     }
     ;
 
 VarDecl
-    : DECLARE Ident ':' VarType {
+    : DECLARE IDENT ':' VarType {
         auto ast = new VarDeclAST();
-        ast->ident = unique_ptr<BaseAST>($2);
-        ast->type = unique_ptr<BaseAST>($4);
+        ast->ident = *unique_ptr<string>($2);
+        ast->type = *unique_ptr<string>($4);
         $$ = ast;
     }
     ;
 
 VarType
-    : INTEGER {
-        auto ast = new VarTypeAST();
-        ast->type = *unique_ptr<string>($1);
-        $$ = ast;
-    }
-    ;
-
-Assign
-    : VarAssign {
-        auto ast = new AssignAST();
-        ast->assign = unique_ptr<BaseAST>($1);
-        $$ = ast;
-    }
+    : INTEGER
     ;
 
 VarAssign
-    : Ident ASSIGN Expr {
+    : IDENT ASSIGN Expr {
         auto ast = new VarAssignAST();
-        ast->ident = unique_ptr<BaseAST>($1);
+        ast->ident = *unique_ptr<string>($1);
         ast->expr = unique_ptr<BaseAST>($3);
         $$ = ast;
     }
@@ -406,6 +390,7 @@ If
         auto ast = new IfAST();
         ast->cond = unique_ptr<BaseAST>($2);
         ast->block = unique_ptr<BaseAST>($4);
+        ast-> hasElse = 1;
         ast->elseBlock = unique_ptr<BaseAST>($6);
         $$ = ast;
     }
@@ -421,11 +406,11 @@ While
     ;
 
 For
-    : FOR Ident ASSIGN Expr TO Expr Block NEXT {
+    : FOR IDENT ASSIGN Expr TO Expr Block NEXT {
         auto ast = new ForAST();
-        ast->ident = unique_ptr<BaseAST>($2);
-        ast->exprFrom = unique_ptr<BaseAST>($4);
-        ast->exprTo = unique_ptr<BaseAST>($6);
+        ast->ident = *unique_ptr<string>($2);
+        ast->exprFrom = unique_ptr<ExprAST>($4);
+        ast->exprTo = unique_ptr<ExprAST>($6);
         ast->block = unique_ptr<BaseAST>($7);
         $$ = ast;
     }

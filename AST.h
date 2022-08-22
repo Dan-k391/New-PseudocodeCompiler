@@ -15,8 +15,13 @@ using std::cout;
 using std::endl;
 
 class BaseAST;
+class BlockAST;
+class StmtAST;
+class ExprAST;
+class ParamAST;
 
-typedef vector<unique_ptr<BaseAST>> StmtList;
+typedef vector<unique_ptr<StmtAST>> StmtList;
+typedef vector<unique_ptr<ParamAST>> ParamList;
 
 class BaseAST {
 protected:
@@ -58,8 +63,10 @@ protected:
 public:
     // 还是直接使用字符串作为参数名，不多套一层了
     // 还是得套😂
-    unique_ptr<BaseAST> ident;
-    unique_ptr<BaseAST> var_type;
+    // 不套了
+    string ident;
+    string var_type;
+    unique_ptr<ParamList> params = make_unique<ParamList>();
     unique_ptr<BaseAST> block;
 
     string getTypeName() const override {
@@ -67,9 +74,7 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "│  ", 0);
-        var_type->dump(prefix + "│  ", 0);
+        cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << var_type << this->colEND << endl;;
         block->dump(prefix, 0);
     }
 
@@ -84,7 +89,9 @@ protected:
 public:
     // 还是直接使用字符串作为参数名，不多套一层了
     // 还是得套😂
-    unique_ptr<BaseAST> ident;
+    // 不套了
+    string ident;
+    unique_ptr<ParamList> params = make_unique<ParamList>();
     unique_ptr<BaseAST> block;
 
     string getTypeName() const override {
@@ -92,31 +99,39 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "│  ", 0);
+        cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
         block->dump(prefix + "│  ", 0);
     }
 
     // Value *codeGen() override;
 };
 
-class IdentAST : public BaseAST {
+class StmtAST : public BaseAST {
 protected:
-    const char *colSTART = "\033[38;5;208m";
+    const char *colSTART = "\033[38;5;51m";
+    const char *colEND = "\033[0m";
+};
+
+class ExprAST : public BaseAST {
+protected:
+    const char *colSTART = "\033[38;5;220m";
+    const char *colEND = "\033[0m";
+};
+
+class ParamAST : public BaseAST {
+protected:
+    const char *colSTART = "\033[38;5;45m";
     const char *colEND = "\033[0m";
 public:
-    string name;
+    string ident;
+    string type;
 
     string getTypeName() const override {
-        return "Ident";
+        return "Param";
     }
 
     void dump(string prefix, bool isLast) const override {
-        if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << name << endl;
-        } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << name << endl;
-        }
+        cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << type << this->colEND << endl;
     }
 
     // Value *codeGen() override;
@@ -158,60 +173,49 @@ public:
     // Value *codeGen() override;
 };
 
-class StmtAST : public BaseAST {
+class NumberAST : public BaseAST {
 protected:
-    const char *colSTART = "\033[38;5;51m";
+    const char *colSTART = "\033[38;5;82m";
     const char *colEND = "\033[0m";
 public:
-    unique_ptr<BaseAST> stmt;
+    int value;
 
     string getTypeName() const override {
-        return "Stmt";
+        return "Number";
     }
 
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            stmt->dump(prefix + "   ", 0);
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << value << endl;
         } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            stmt->dump(prefix + "│  ", 0);
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << value << endl;
         }
     }
 
     // Value *codeGen() override;
 };
 
-class ExprAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
+class VarExprAST : public ExprAST {
 public:
-    unique_ptr<BaseAST> expr;
+    string name;
 
     string getTypeName() const override {
-        return "Expr";
+        return "VarExpr";
     }
 
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "   ", 1);
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << name << endl;
         } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│  ", 1);
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << name << endl;
         }
     }
-
-    // Value *codeGen() override;
 };
 
-class PrimaryExprAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
+
+class PrimaryExprAST : public ExprAST {
 public:
-    unique_ptr<BaseAST> expr;
+    unique_ptr<ExprAST> expr;
 
     string getTypeName() const override {
         return "PrimaryExpr";
@@ -230,13 +234,10 @@ public:
     // Value *codeGen() override;
 };
 
-class UnaryExprAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
+class UnaryExprAST : public ExprAST {
 public:
     string op;
-    unique_ptr<BaseAST> expr;
+    unique_ptr<ExprAST> expr;
 
     string getTypeName() const override {
         return "UnaryExpr";
@@ -255,14 +256,11 @@ public:
     // Value *codeGen() override;
 };
 
-class BinaryExprAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
+class BinaryExprAST : public ExprAST {
 public:
-    unique_ptr<BaseAST> lhs;
+    unique_ptr<ExprAST> lhs;
     string op;
-    unique_ptr<BaseAST> rhs;
+    unique_ptr<ExprAST> rhs;
 
     string getTypeName() const override {
         return "BinaryExpr";
@@ -283,33 +281,33 @@ public:
     // Value *codeGen() override;
 };
 
-class DeclAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class CallExprAST : public ExprAST {
 public:
-    unique_ptr<BaseAST> decl;
-
+    string ident;
+    
     string getTypeName() const override {
-        return "Decl";
+        return "CallExpr";
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        decl->dump(prefix + "   ", 1);
+        if (isLast) {
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
+        } else {
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
+        }
     }
-
-    // Value *codeGen() override;
 };
 
-class VarDeclAST : public BaseAST {
+
+class VarDeclAST : public StmtAST {
 protected:
     const char *colSTART = "\033[38;5;51m";
     const char *colEND = "\033[0m";
 public:
     // 先多套一层，看后期能否简化
-    unique_ptr<BaseAST> ident;
-    unique_ptr<BaseAST> type;
+    // 不套了
+    string ident;
+    string type;
 
     string getTypeName() const override {
         return "VarDecl";
@@ -317,68 +315,20 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            ident->dump(prefix + "   ", 0);
-            type->dump(prefix + "   ", 1);
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << ident << type << this->colEND << endl;
         } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            ident->dump(prefix + "│  ", 0);
-            type->dump(prefix + "│  ", 1);
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << type << this->colEND << endl;
         }
     }
 
     // Value *codeGen() override;
 };
 
-class VarTypeAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
-public:
-    string type;
-
-    string getTypeName() const override {
-        return "VarType";
-    }
-
-    void dump(string prefix, bool isLast) const override {
-        if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << type << endl;
-        } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << type << endl;
-        }
-    }
-
-    // Value *codeGen() override;
-};
-
-class AssignAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
-public:
-    unique_ptr<BaseAST> assign;
-
-    string getTypeName() const override {
-        return "Assign";
-    }
-
-    void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        assign->dump(prefix + "   ", 1);   
-    }
-
-    // Value *codeGen() override;
-};
-
-class VarAssignAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class VarAssignAST : public StmtAST {
 public:
     // 先多套一层，看后期能否简化
-    unique_ptr<BaseAST> ident;
-    unique_ptr<BaseAST> expr;
+    string ident;
+    unique_ptr<ExprAST> expr;
 
     string getTypeName() const override {
         return "VarAssign";
@@ -386,12 +336,10 @@ public:
 
     void dump(string prefix, bool isLast) const override {
         if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            ident->dump(prefix + "   ", 0);
+            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
             expr->dump(prefix + "   ", 1);
         } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            ident->dump(prefix + "│  ", 0);
+            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
             expr->dump(prefix + "│  ", 1);
         }
     }
@@ -399,12 +347,9 @@ public:
     // Value *codeGen() override;
 };
 
-class IfAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class IfAST : public StmtAST {
 public:
-    unique_ptr<BaseAST> cond;
+    unique_ptr<ExprAST> cond;
     unique_ptr<BaseAST> block;
     bool hasElse = 0;
     unique_ptr<BaseAST> elseBlock;
@@ -439,12 +384,9 @@ public:
     // Value *codeGen() override;
 };
 
-class WhileAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class WhileAST : public StmtAST {
 public:
-    unique_ptr<BaseAST> cond;
+    unique_ptr<ExprAST> cond;
     unique_ptr<BaseAST> block;
 
     string getTypeName() const override {
@@ -460,14 +402,11 @@ public:
     // Value *codeGen() override;
 };
 
-class ForAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class ForAST : public StmtAST {
 public:
-    unique_ptr<BaseAST> ident;
-    unique_ptr<BaseAST> exprFrom;
-    unique_ptr<BaseAST> exprTo;
+    string ident;
+    unique_ptr<ExprAST> exprFrom;
+    unique_ptr<ExprAST> exprTo;
     unique_ptr<BaseAST> block;
 
     string getTypeName() const override {
@@ -475,8 +414,7 @@ public:
     }
 
     void dump(string prefix, bool isLast) const override {
-        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-        ident->dump(prefix + "   ", 1);
+        cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << ident << this->colEND << endl;
         exprFrom->dump(prefix + "   ", 1);
         exprTo->dump(prefix + "   ", 1);
         block->dump(prefix + "   ", 1);
@@ -485,12 +423,9 @@ public:
     // Value *codeGen() override;
 };
 
-class ReturnAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
+class ReturnAST : public StmtAST {
 public:
-    unique_ptr<BaseAST> expr;
+    unique_ptr<ExprAST> expr;
 
     string getTypeName() const override {
         return "Return";
@@ -502,29 +437,7 @@ public:
             expr->dump(prefix + "   ", 1);
         } else {
             cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << endl;
-            expr->dump(prefix + "│  ", 0);
-        }
-    }
-
-    // Value *codeGen() override;
-};
-
-class NumberAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;82m";
-    const char *colEND = "\033[0m";
-public:
-    int value;
-
-    string getTypeName() const override {
-        return "Number";
-    }
-
-    void dump(string prefix, bool isLast) const override {
-        if (isLast) {
-            cout << prefix << this->endPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << value << endl;
-        } else {
-            cout << prefix << this->midPREFIX << this->colSTART << getTypeName() << this->colEND << ": " << value << endl;
+            expr->dump(prefix + "│  ", 1);
         }
     }
 
