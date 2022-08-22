@@ -48,6 +48,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 "ENDPROCEDURE"  { yylval.str_val = new string(yytext); return ENDPROCEDURE; }
 "RETURNS"       { yylval.str_val = new string(yytext); return RETURNS; }
 "RETURN"        { yylval.str_val = new string(yytext); return RETURN; }
+"CALL"          { yylval.str_val = new string(yytext); return CALL; }
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
 "<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
