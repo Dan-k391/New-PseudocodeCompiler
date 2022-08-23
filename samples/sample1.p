@@ -14,4 +14,3 @@ ENDIF
 WHILE c > 0
     c <- c - 1
 ENDWHILE
-

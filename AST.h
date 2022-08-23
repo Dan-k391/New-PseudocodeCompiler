@@ -18,7 +18,7 @@ class BaseAST;
 class StmtAST;
 class ExprAST;
 
-typedef vector<unique_ptr<BaseAST>> StmtList;
+typedef vector<unique_ptr<StmtAST>> StmtList;
 
 class BaseAST {
 protected:
@@ -100,6 +100,18 @@ public:
     // Value *codeGen() override;
 };
 
+class StmtAST : public BaseAST {
+protected:
+    const char *colSTART = "\033[38;5;51m";
+    const char *colEND = "\033[0m";
+};
+
+class ExprAST : public BaseAST {
+protected:
+    const char *colSTART = "\033[38;5;220m";
+    const char *colEND = "\033[0m";
+};
+
 class BlockAST : public BaseAST {
 protected:
     const char *colSTART = "\033[38;5;6m";
@@ -134,18 +146,6 @@ public:
     }
 
     // Value *codeGen() override;
-};
-
-class StmtAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;51m";
-    const char *colEND = "\033[0m";
-};
-
-class ExprAST : public BaseAST {
-protected:
-    const char *colSTART = "\033[38;5;220m";
-    const char *colEND = "\033[0m";
 };
 
 class NumberAST : public ExprAST {
