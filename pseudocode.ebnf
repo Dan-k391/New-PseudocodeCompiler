@@ -1,4 +1,4 @@
-CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Bloc\);
+CompUnit    ::= [CompUnit] (FuncDef | ProcDef | Block);
 
 (* FuncDef *)
 FuncDef     ::= "FUNCTION" Ident "(" [Params] ")" "RETURNS" VarType Block "ENDFUNCTION";

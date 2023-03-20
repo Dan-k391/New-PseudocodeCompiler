@@ -1,0 +1,17 @@
+TYPE CustomerRecord
+    CustomerID : INTEGER
+    Data : STRING
+ENDTYPE
+
+DECLARE Customer: ARRAY[0: 200] OF CustomerRecord
+
+PROCEDURE CreateHashTable()
+    DECLARE i: INTEGER
+    FOR i <- 0 TO 200
+        CustomerHashTable[i].CustomerID <- 0
+        CustomerHashTable[i].Data <- ""
+    NEXT i
+ENDPROCEDURE
+
+
+    

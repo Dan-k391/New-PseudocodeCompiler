@@ -1,4 +1,4 @@
-%define parse.error detailed
+%define parse.error verbose
 
 %code requires {
     #include <iostream>
@@ -28,24 +28,27 @@ using namespace std;
 %union {
     std::string *str_val;
     int int_val;
+    double real_val;
     BaseAST *ast_val;
     BlockAST *block_val;
     StmtAST *stmt_val;
     ExprAST *expr_val;
 }
 
+%token <str_val> OUTPUT
 %token <str_val> IDENT FUNCTION ENDFUNCTION PROCEDURE ENDPROCEDURE RETURNS RETURN CALL
-%token <str_val> DECLARE ASSIGN INTEGER
+%token <str_val> DECLARE ASSIGN INTEGER REAL
 %token <str_val> IF THEN ELSE ENDIF WHILE ENDWHILE FOR TO NEXT
 %token <str_val> LE GE NE MOD AND OR NOT
-%token <int_val> INT_CONST
+/* %token <int_val> INT_CONST */
+%token <real_val> NUMBER_CONST
 
 %type <ast_val> FuncDef ProcDef
 %type <block_val> Block
 /* Stmt and Expr act as mid */
-%type <stmt_val> Stmt VarDecl VarAssign If While For Return
+%type <stmt_val> Stmt Output Return VarDecl VarAssign If While For
 %type <expr_val> Expr Number VarExpr PrimaryExpr UnaryExpr BinaryExpr
-%type <str_val> VarType
+%type <str_val> BinaryOp UnaryOp VarType
 
 %left OR
 %left AND
@@ -53,7 +56,7 @@ using namespace std;
 %left '<' '>' LE GE
 %left '+' '-'
 %left '*' '/' MOD
-%right NOT UMINUS UPLUS
+%right UNARY
 
 %%
 
@@ -61,17 +64,17 @@ CompUnit
     : FuncDef {
         auto comp_unit = make_unique<CompUnitAST>();
         comp_unit->def = unique_ptr<BaseAST>($1);
-        ast = move(comp_unit);
+        ast = std::move(comp_unit);
     }
     | ProcDef {
         auto comp_unit = make_unique<CompUnitAST>();
         comp_unit->def = unique_ptr<BaseAST>($1);
-        ast = move(comp_unit);
+        ast = std::move(comp_unit);
     }
     | Block {
         auto comp_unit = make_unique<CompUnitAST>();
         comp_unit->def = unique_ptr<BaseAST>($1);
-        ast = move(comp_unit);
+        ast = std::move(comp_unit);
     }
     ;
 
@@ -103,15 +106,6 @@ Block
     | Block Stmt {
         $1->stmts->push_back(unique_ptr<StmtAST>($2));
     }
-    ;
-
-Stmt
-    : Return
-    | VarDecl
-    | VarAssign
-    | If
-    | While
-    | For
     ;
 
 Expr
@@ -147,116 +141,68 @@ PrimaryExpr
     ;
 
 UnaryExpr
-    : '+' Expr %prec UPLUS {
+    : UnaryOp Expr %prec UNARY {
         auto ast = new UnaryExprAST();
-        ast->op = *unique_ptr<string>(new string("+"));
-        ast->expr = unique_ptr<ExprAST>($2);
-        $$ = ast;
-    }
-    | '-' Expr %prec UMINUS {
-        auto ast = new UnaryExprAST();
-        ast->op = *unique_ptr<string>(new string("-"));
-        ast->expr = unique_ptr<ExprAST>($2);
-        $$ = ast;
-    }
-    | NOT Expr {
-        auto ast = new UnaryExprAST();
-        ast->op = *unique_ptr<string>(new string("NOT"));
+        ast->op = *unique_ptr<string>($1);
         ast->expr = unique_ptr<ExprAST>($2);
         $$ = ast;
     }
     ;
 
+UnaryOp
+    : '+' { $$ = new string("+"); }
+    | '-' { $$ = new string("-"); }
+    | NOT { $$ = new string("NOT"); }
+    ;
+
 BinaryExpr
-    : Expr '+' Expr {
+    : Expr BinaryOp Expr {
         auto ast = new BinaryExprAST();
         ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("+"));
+        ast->op = *unique_ptr<string>($2);
         ast->rhs = unique_ptr<ExprAST>($3);
         $$ = ast;
     }
-    | Expr '-' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("-"));
-        ast->rhs = unique_ptr<ExprAST>($3);
+    ;
+
+BinaryOp
+    : '+' { $$ = new string("+"); }
+    | '-' { $$ = new string("-"); }
+    | '*' { $$ = new string("*"); }
+    | '/' { $$ = new string("/"); }
+    | MOD { $$ = new string("MOD"); }
+    | '=' { $$ = new string("="); }
+    | NE { $$ = new string("<>"); }
+    | '>' { $$ = new string(">"); }
+    | '<' { $$ = new string("<"); }
+    | LE { $$ = new string("<="); }
+    | GE { $$ = new string(">="); }
+    | AND { $$ = new string("AND"); }
+    | OR { $$ = new string("OR"); }
+    ;
+
+Stmt
+    : Output
+    | Return
+    | VarDecl
+    | VarAssign
+    | If
+    | While
+    | For
+    ;
+
+Output
+    : OUTPUT Expr {
+        auto ast = new OutputAST();
+        ast->expr = unique_ptr<ExprAST>($2);
         $$ = ast;
     }
-    | Expr '*' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("*"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr '/' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("/"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr MOD Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("MOD"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr '=' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("="));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr NE Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("<>"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr '>' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string(">"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr '<' Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("<"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr LE Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("<="));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr GE Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string(">="));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr AND Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("AND"));
-        ast->rhs = unique_ptr<ExprAST>($3);
-        $$ = ast;
-    }
-    | Expr OR Expr {
-        auto ast = new BinaryExprAST();
-        ast->lhs = unique_ptr<ExprAST>($1);
-        ast->op = *unique_ptr<string>(new string("OR"));
-        ast->rhs = unique_ptr<ExprAST>($3);
+    ;
+
+Return
+    : RETURN Expr {
+        auto ast = new ReturnAST();
+        ast->expr = unique_ptr<ExprAST>($2);
         $$ = ast;
     }
     ;
@@ -272,13 +218,14 @@ VarDecl
 
 VarType
     : INTEGER
+    | REAL
     ;
 
 VarAssign
     : IDENT ASSIGN Expr {
         auto ast = new VarAssignAST();
         ast->ident = *unique_ptr<string>($1);
-        ast->expr = unique_ptr<BaseAST>($3);
+        ast->expr = unique_ptr<ExprAST>($3);
         $$ = ast;
     }
     ;
@@ -320,18 +267,10 @@ For
     }
     ;
 
-Return
-    : RETURN Expr {
-        auto ast = new ReturnAST();
-        ast->expr = unique_ptr<ExprAST>($2);
-        $$ = ast;
-    }
-    ;
-
 Number
-    : INT_CONST {
+    : NUMBER_CONST {
         auto ast = new NumberAST();
-        ast->value = *unique_ptr<int>(new int($1));
+        ast->value = *unique_ptr<double>(new double($1));
         $$ = ast;
     }
     ;

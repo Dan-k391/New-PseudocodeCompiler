@@ -19,20 +19,17 @@ int cur_line = 1;
 
 %}
 
-/* 空白符和注释 */
 NewLine       \n
 WhiteSpace    [ \t\r]*
 LineComment   "//".*$
 
-Operator     [+\-*/=,:!<>()\[\]]
+Operator      [+\-*/=,:!<>()\[\]]
 
-/* 标识符 */
 Identifier    [a-zA-Z_][a-zA-Z0-9_]*
 
-/* 整数字面量 */
-Decimal       [1-9][0-9]*
-Octal         0[0-7]*
-Hexadecimal   0[xX][0-9a-fA-F]+
+/* 数字 */
+/* Int           [0-9]+ */
+Number        [0-9]+\.?[0-9]*
 
 %%
 
@@ -41,6 +38,8 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {LineComment}   { /* 忽略, 不做任何操作 */ }
 
 {Operator}      { yylval.str_val = new string(yytext); return yytext[0]; }
+
+"OUTPUT"        { yylval.str_val = new string(yytext); return OUTPUT; }
 
 "FUNCTION"      { yylval.str_val = new string(yytext); return FUNCTION; }
 "ENDFUNCTION"   { yylval.str_val = new string(yytext); return ENDFUNCTION; }
@@ -52,6 +51,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 "DECLARE"       { yylval.str_val = new string(yytext); return DECLARE; }
 "<-"            { yylval.str_val = new string(yytext); return ASSIGN; }
 "INTEGER"       { yylval.str_val = new string(yytext); return INTEGER; }
+"REAL"          { yylval.str_val = new string(yytext); return REAL; }
 "IF"            { yylval.str_val = new string(yytext); return IF; }
 "THEN"          { yylval.str_val = new string(yytext); return THEN; }
 "ELSE"          { yylval.str_val = new string(yytext); return ELSE; }
@@ -71,9 +71,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 {Identifier}    { yylval.str_val = new string(yytext); return IDENT; }
 
-{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
+{Number}        { yylval.real_val = strtof(yytext, nullptr); return NUMBER_CONST; }
 
 .               { yyerror(yytext); }
 

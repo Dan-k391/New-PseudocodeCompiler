@@ -1,0 +1,78 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-I/usr/lib/llvm-16/include",
+      "-std=c++17",
+      "-fno-exceptions",
+      "-D_GNU_SOURCE",
+      "-D__STDC_CONSTANT_MACROS",
+      "-D__STDC_FORMAT_MACROS",
+      "-D__STDC_LIMIT_MACROS",
+      "-c",
+      "-o",
+      "scanner.yy.o",
+      "scanner.yy.cpp"
+    ],
+    "directory": "/mnt/d/New-PseudocodeCompiler",
+    "file": "/mnt/d/New-PseudocodeCompiler/scanner.yy.cpp",
+    "output": "/mnt/d/New-PseudocodeCompiler/scanner.yy.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-I/usr/lib/llvm-16/include",
+      "-std=c++17",
+      "-fno-exceptions",
+      "-D_GNU_SOURCE",
+      "-D__STDC_CONSTANT_MACROS",
+      "-D__STDC_FORMAT_MACROS",
+      "-D__STDC_LIMIT_MACROS",
+      "-c",
+      "-o",
+      "parser.tab.o",
+      "parser.tab.cpp"
+    ],
+    "directory": "/mnt/d/New-PseudocodeCompiler",
+    "file": "/mnt/d/New-PseudocodeCompiler/parser.tab.cpp",
+    "output": "/mnt/d/New-PseudocodeCompiler/parser.tab.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-I/usr/lib/llvm-16/include",
+      "-std=c++17",
+      "-fno-exceptions",
+      "-D_GNU_SOURCE",
+      "-D__STDC_CONSTANT_MACROS",
+      "-D__STDC_FORMAT_MACROS",
+      "-D__STDC_LIMIT_MACROS",
+      "-c",
+      "-o",
+      "CodeGen.o",
+      "CodeGen.cpp"
+    ],
+    "directory": "/mnt/d/New-PseudocodeCompiler",
+    "file": "/mnt/d/New-PseudocodeCompiler/CodeGen.cpp",
+    "output": "/mnt/d/New-PseudocodeCompiler/CodeGen.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-I/usr/lib/llvm-16/include",
+      "-std=c++17",
+      "-fno-exceptions",
+      "-D_GNU_SOURCE",
+      "-D__STDC_CONSTANT_MACROS",
+      "-D__STDC_FORMAT_MACROS",
+      "-D__STDC_LIMIT_MACROS",
+      "-c",
+      "-o",
+      "main.o",
+      "main.cpp"
+    ],
+    "directory": "/mnt/d/New-PseudocodeCompiler",
+    "file": "/mnt/d/New-PseudocodeCompiler/main.cpp",
+    "output": "/mnt/d/New-PseudocodeCompiler/main.o"
+  }
+]

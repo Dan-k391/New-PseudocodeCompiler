@@ -1,0 +1,29 @@
+TYPE NODE
+    pointer: INTEGER
+    value: INTEGER
+ENDTYPE
+# LINK LIST 
+DECLARE List OF ARRAY[1: 10] OF NODE
+DECLARE FreeList OF ARRAY[1:10]: NODE
+DECLARE FreeListPointer: INTEGER
+DECLARE NullPointer: INTEGER
+NullPointer <- -1
+FreeListPointer <- 0
+
+FUNCTION DeleteEndNode(BYREF StartPointer: INTEGER) RETURNS STRING
+    DECLARE CurrentPointer, PreviousPointer: INTEGER
+    CurrentPointer <- StartPointer
+    WHILE CurrentPointer <> NullPointer
+        PreviousPointer <- CurrentPointer
+        CurrentPointer <- List[CurrentPointer].pointer
+    ENDWHILE
+    IF CurrentPointer = StartPointer
+        StartPointer <- NullPointer
+    ELSE
+        List[PreviousPointer].pointer <- NullPointer
+    ENDIF
+    Item <- List[CurrentPointer].value
+    List[CurrentPointer].pointer <- FreeListPointer
+    FreeListPointer <- CurrentPointer
+    RETURN Item
+ENDFUNCTION
